@@ -1,24 +1,25 @@
-const CACHE = "quetema-cache-v4";
+// Cambiá la versión cuando quieras forzar actualización
+const CACHE = "impostores-v2";
 
 const FILES = [
   "./",
   "./index.html",
-  "./preguntas.js",
+  "./content/personajes.js",
   "./manifest.json",
   "./logo.png"
 ];
 
-// INSTALACIÓN: Cachea los archivos base
-self.addEventListener("install", evt => {
-  evt.waitUntil(
+// INSTALACIÓN
+self.addEventListener("install", event => {
+  self.skipWaiting();
+  event.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(FILES))
   );
-  self.skipWaiting();
 });
 
-// ACTIVACIÓN: Limpia cachés viejos
-self.addEventListener("activate", evt => {
-  evt.waitUntil(
+// ACTIVACIÓN
+self.addEventListener("activate", event => {
+  event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
         keys
@@ -27,24 +28,34 @@ self.addEventListener("activate", evt => {
       )
     )
   );
-  self.clients.claim();
+  clients.claim();
 });
 
-// FETCH: Stale-While-Revalidate (rápido + mantiene actualizado)
-self.addEventListener("fetch", evt => {
-  evt.respondWith(
-    caches.match(evt.request).then(cacheRes => {
-      const fetchPromise = fetch(evt.request)
-        .then(networkRes => {
-          // actualizar caché con la respuesta nueva
-          return caches.open(CACHE).then(cache => {
-            cache.put(evt.request, networkRes.clone());
-            return networkRes;
-          });
-        })
-        .catch(() => cacheRes); // offline fallback
+// ESTRATEGIA:
+// - HTML → NETWORK FIRST (para que actualice diseño)
+// - JS, JSON, IMÁGENES → CACHE FIRST + actualización silenciosa
+self.addEventListener("fetch", event => {
+  if (event.request.mode === "navigate") {
+    // HTML siempre se trae fresco
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match("./index.html"))
+    );
+    return;
+  }
 
-      return cacheRes || fetchPromise;
+  // cache first para assets
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      const fetchPromise = fetch(event.request)
+        .then(networkResp => {
+          caches.open(CACHE).then(cache => {
+            cache.put(event.request, networkResp.clone());
+          });
+          return networkResp;
+        })
+        .catch(() => cached);
+
+      return cached || fetchPromise;
     })
   );
 });
