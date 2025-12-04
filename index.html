@@ -1,184 +1,443 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1db954">
 <meta charset="UTF-8">
-<title>QuéTema</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- Favicon -->
-<link rel="icon" type="image/png" href="logo.png">
-
+<title>Melomanía</title>
 <style>
-    /* Fondo oscuro y texto claro */
-    body {
-        font-family: Arial, sans-serif;
-        background: #333;
-        color: white;
-        text-align: center;
-        padding: 20px;
-        margin: 0;
-    }
+  :root {
+    --verde: #1db954;
+    --naranja: #ff9800;
+    --rojo: #f44336;
+  }
+  body{
+    margin:0;
+    font-family:'Segoe UI',system-ui,sans-serif;
+    background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+    color:#eee;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    box-sizing:border-box;
+  }
+  .container{
+    background:rgba(20,20,40,0.95);
+    max-width:560px;
+    width:100%;
+    border-radius:24px;
+    box-shadow:0 25px 60px rgba(0,0,0,.8);
+    overflow:hidden;
+    border:1px solid #333;
+  }
+  header{
+    background:var(--verde);
+    color:#000;
+    padding:20px 16px;
+    text-align:center;
+    font-size:28px;
+    font-weight:900;
+    letter-spacing:1px;
+  }
+  header small{
+    display:block;
+    font-size:15px;
+    font-weight:normal;
+    opacity:.9;
+    margin-top:4px;
+  }
+  main{padding:24px 20px}
+  input,select,button{
+    width:100%;
+    padding:14px 16px;
+    margin:12px 0;
+    border-radius:16px;
+    border:none;
+    font-size:17px;
+    box-sizing:border-box;
+    transition:.3s;
+  }
+  input,select{
+    background:#222;
+    color:#fff;
+    border:2px solid #444;
+  }
+  input:focus,select:focus{
+    border-color:var(--verde);
+    outline:none;
+  }
+  button{
+    background:var(--verde);
+    color:#000;
+    font-weight:bold;
+    cursor:pointer;
+    letter-spacing:1px;
+  }
+  button:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(29,185,84,.4)}
+  button:active{transform:translateY(0)}
 
-    /* Logo grande y centrado */
-    #logo {
-        width: 180px;
-        max-width: 90%;
-        height: auto;
-        margin: 20px auto;
-        display: block;
-        cursor: pointer; /* indica que se puede clickear */
-        transition: transform 0.2s;
-    }
+  .card{
+    background:linear-gradient(145deg,#1e1e2e,#2a2a40);
+    padding:24px;
+    border-radius:20px;
+    margin:20px 0;
+    box-shadow:0 15px 40px rgba(0,0,0,.6);
+    border:1px solid #333;
+  }
+  .opcion{
+    background:#2d2d44;
+    padding:18px;
+    margin:12px 0;
+    border-radius:16px;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:.3s;
+    font-size:18px;
+    font-weight:600;
+  }
+  .opcion:hover{
+    border-color:var(--verde);
+    transform:translateY(-3px);
+  }
+  .opcion.correcta{background:#1ed76022;border-color:#1ed760;color:#1ed760}
+  .opcion.incorrecta{background:#f4433622;border-color:var(--rojo);color:var(--rojo)}
 
-    #logo:hover {
-        transform: scale(1.05);
-    }
+  .bonus-opcion{
+    background:#332940;
+    padding:14px;
+    margin:10px 0;
+    border-radius:14px;
+    border:2px dashed #555;
+    cursor:pointer;
+    transition:.3s;
+    font-size:16px;
+  }
+  .bonus-opcion:hover{border-color:var(--naranja)}
+  .bonus-opcion.seleccionada{
+    border-color:var(--naranja);
+    background:#ff980022;
+    color:var(--naranja);
+  }
 
-    .container {
-        perspective: 1000px;
-        margin: 20px auto;
-        width: 300px;
-        max-width: 90%;
-    }
+  .hidden{display:none}
+  .mensaje{
+    margin:20px 0;
+    padding:16px;
+    background:#111;
+    border-radius:14px;
+    text-align:center;
+    font-size:18px;
+    font-weight:bold;
+  }
+  .puntaje{
+    margin-top:20px;
+    padding:16px;
+    background:#1a1a2e;
+    border-radius:16px;
+    font-size:16px;
+    line-height:1.8;
+  }
+  #final{
+    background:#0f0c29;
+    padding:40px 20px;
+    border-radius:24px;
+    text-align:center;
+  }
+  .flex{
+    display:flex;
+    gap:12px;
+  }
+  .flex button{
+    flex:1;
+  }
+  .flex button:first-child{flex:2}
 
-    .carta {
-        width: 100%;
-        height: 180px;
-        position: relative;
-        transform-style: preserve-3d;
-        transition: transform 0.6s;
-        display: none;
-    }
-
-    .flip {
-        transform: rotateY(180deg);
-    }
-
-    .lado {
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        padding: 20px;
-        box-sizing: border-box;
-        border-radius: 15px;
-        backface-visibility: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 1.2rem;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-    }
-
-    .front {
-        background: white;
-        color: black;
-    }
-
-    .back {
-        background: black;
-        color: white;
-        transform: rotateY(180deg);
-    }
-
-    button {
-        padding: 12px 25px;
-        font-size: 1.1rem;
-        margin-top: 15px;
-        cursor: pointer;
-        border-radius: 8px;
-        border: none;
-        background: white;
-        color: black;
-        transition: background 0.2s;
-    }
-
-    button:active {
-        background: #ccc;
-    }
+  @media (max-width: 480px) {
+    header{font-size:24px}
+    header small{font-size:14px}
+    main{padding:20px 16px}
+    .card{padding:20px}
+    .opcion{font-size:17px;padding:16px}
+    input,select,button{font-size:16px;padding:13px}
+  }
 </style>
 </head>
 <body>
-
-<!-- Logo (clickeable para reiniciar) -->
-<img src="logo.png" alt="QuéTema Logo" id="logo">
-
-<!-- Botón Reiniciar -->
-<button id="btnReiniciar" style="display:none;">Reiniciar</button>
-
-<!-- Botón Comenzar -->
-<button id="btnComenzar">Comenzar</button>
-
-<!-- Carta -->
 <div class="container">
-    <div class="carta" id="carta">
-        <div class="lado front" id="ladoFront">Pregunta</div>
-        <div class="lado back" id="ladoBack">Pregunta</div>
+  <header>MELOMANÍA</header>
+  <main id="pantallas">
+
+    <!-- SETUP -->
+    <div id="setup">
+      <p style="text-align:center;font-size:15px;opacity:.9;line-height:1.6;margin-bottom:20px">
+        Frase correcta → +5 puntos<br>
+        Bonus opcional → hasta +3 extra<br>
+        <strong style="color:#ff5252">Un solo error en bonus = 0 puntos total</strong>
+      </p>
+
+      <label>Jugadores:</label>
+      <select id="cantidad">
+        <option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+      </select>
+
+      <label>Número de rondas (cartas):</label>
+      <input type="number" id="rondasTotales" min="5" max="100" value="10" placeholder="10">
+
+      <div id="nombres"></div>
+
+      <button onclick="empezar()">EMPEZAR PARTIDA</button>
     </div>
+
+    <!-- JUEGO -->
+    <div id="juego" class="hidden">
+      <div style="text-align:center;margin:20px 0;font-size:19px">
+        Turno de <strong style="color:var(--verde)" id="jugadorActual"></strong><br>
+        <small>Ronda <span id="ronda">1</span> / <span id="totalRondas">?</span> • Quedan <span id="quedan">?</span> cartas</small>
+      </div>
+
+      <div class="card">
+        <p style="font-size:22px;line-height:1.8;text-align:center;margin-bottom:30px;word-spacing:3px" id="frase"></p>
+
+        <div id="opciones"></div>
+
+        <div id="bonus" class="hidden">
+          <hr style="margin:30px 0;border-color:#333">
+          <p style="text-align:center;font-weight:bold;color:var(--naranja);margin-bottom:18px;font-size:19px">
+            BONUS OPCIONAL – RIESGO TOTAL
+          </p>
+          <div id="bonusPreguntas"></div>
+          <div class="flex" style="margin-top:20px">
+            <button onclick="confirmarBonus()" style="background:var(--naranja);color:#000;">
+              ¡ARRIESGAR!
+            </button>
+            <button onclick="pasarSinBonus()" style="background:#444;">
+              Quedarme con 5
+            </button>
+          </div>
+        </div>
+
+        <div id="resultado" class="hidden mensaje"></div>
+      </div>
+
+      <div class="puntaje">
+        <strong>PUNTAJE ACTUAL</strong><br>
+        <div id="tabla"></div>
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div id="final" class="hidden">
+      <h2>¡FIN DE LA PARTIDA!</h2>
+      <div id="ganador" style="margin:30px 0"></div>
+      <div id="podio" style="font-size:18px;line-height:2"></div>
+      <br><br>
+      <button onclick="location.reload()" style="padding:16px 40px;font-size:19px">JUGAR OTRA VEZ</button>
+    </div>
+  </main>
 </div>
 
-<!-- Botón Siguiente -->
-<button id="btnSiguiente" style="display:none;">Siguiente</button>
-
-<!-- Archivo externo con preguntas -->
-<script src="preguntas.js"></script>
-
+<script src="cartas.js"></script>
 <script>
-let preguntas = window.PREGUNTAS || [];
-let restantes = [];
+let jugadores = [], puntajes = [], turno = 0, ronda = 0;
+let mazo = [], cartaActual;
+let respuestaCorrecta = false;
+let bonusSeleccionados = {};
+let rondasTotales = 20; // por defecto
 
-// Mostrar nueva carta
-function mostrarNuevaCarta() {
-    if (restantes.length === 0) {
-        document.getElementById("ladoFront").innerText = "¡No hay más preguntas!";
-        document.getElementById("ladoBack").innerText  = "Fin del mazo";
-        return;
-    }
+// Generar inputs nombres
+document.getElementById("cantidad").onchange = generarInputsNombres;
+function generarInputsNombres() {
+  const c = document.getElementById("cantidad").value;
+  let html = "";
+  for(let i=1;i<=c;i++) {
+    html += `<input type="text" placeholder="Jugador ${i}" id="j${i}" style="margin:10px 0">`;
+  }
+  document.getElementById("nombres").innerHTML = html;
+}
+generarInputsNombres(); // primera carga
 
-    const idx = Math.floor(Math.random() * restantes.length);
-    const pregunta = restantes.splice(idx, 1)[0];
+function empezar(){
+  const cant = +document.getElementById("cantidad").value;
+  rondasTotales = +document.getElementById("rondasTotales").value || 20;
+  if(rondasTotales < 5) rondasTotales = 5;
+  if(rondasTotales > cartas.length) rondasTotales = cartas.length;
 
-    document.getElementById("ladoBack").innerText = pregunta.pregunta;
+  for(let i=1;i<=cant;i++){
+    const nom = document.getElementById("j"+i)?.value.trim() || `Jugador ${i}`;
+    jugadores.push(nom);
+    puntajes.push(0);
+  }
 
-    const carta = document.getElementById("carta");
-    carta.classList.remove("flip");
-    setTimeout(() => carta.classList.add("flip"), 50);
+  // Mezclar y cortar el mazo al número de rondas elegido
+  mazo = [...cartas];
+  for(let i = mazo.length-1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i+1));
+    [mazo[i], mazo[j]] = [mazo[j], mazo[i]];
+  }
+  mazo = mazo.slice(0, rondasTotales); // ¡solo las rondas que queremos!
+
+  document.getElementById("setup").classList.add("hidden");
+  document.getElementById("juego").classList.remove("hidden");
+  ronda = 0;
+  document.getElementById("totalRondas").textContent = rondasTotales;
+  actualizarTabla();
+  siguienteCarta();
 }
 
-// Iniciar juego
-document.getElementById("btnComenzar").addEventListener("click", function() {
-    if (preguntas.length === 0) {
-        alert("No hay preguntas cargadas en preguntas.js");
-        return;
-    }
+function siguienteCarta(){
+  ronda++;
+  if(ronda > rondasTotales){
+    terminarJuego();
+    return;
+  }
 
-    restantes = [...preguntas];
+  cartaActual = mazo[ronda-1]; // ya está mezclado y cortado
+  document.getElementById("jugadorActual").textContent = jugadores[turno];
+  document.getElementById("ronda").textContent = ronda;
+  document.getElementById("quedan").textContent = rondasTotales - ronda;
 
-    document.getElementById("carta").style.display = "block";
-    document.getElementById("btnSiguiente").style.display = "inline-block";
-    document.getElementById("btnReiniciar").style.display = "inline-block";
-    this.style.display = "none";
+  document.getElementById("frase").innerHTML = cartaActual.frase.replace("____","<u>________</u>");
 
-    mostrarNuevaCarta();
-});
+  const ops = document.getElementById("opciones");
+  ops.innerHTML = `
+    <div class="opcion" onclick="responder('a')"><strong>a)</strong> ${cartaActual.a}</div>
+    <div class="opcion" onclick="responder('b')"><strong>b)</strong> ${cartaActual.b}</div>
+    <div class="opcion" onclick="responder('c')"><strong>c)</strong> ${cartaActual.c}</div>
+  `;
 
-// Siguiente carta
-document.getElementById("btnSiguiente").addEventListener("click", mostrarNuevaCarta);
-
-// Función de reinicio
-function reiniciarJuego() {
-    restantes = [];
-    document.getElementById("carta").style.display = "none";
-    document.getElementById("btnSiguiente").style.display = "none";
-    document.getElementById("btnComenzar").style.display = "inline-block";
-    document.getElementById("btnReiniciar").style.display = "none";
+  // Reset
+  document.getElementById("bonus").classList.add("hidden");
+  document.getElementById("resultado").classList.add("hidden");
+  ops.querySelectorAll(".opcion").forEach(e=>e.classList.remove("correcta","incorrecta"));
+  respuestaCorrecta = false;
+  bonusSeleccionados = {};
 }
 
-// Botón Reiniciar
-document.getElementById("btnReiniciar").addEventListener("click", reiniciarJuego);
+function responder(letra){
+  const correcta = cartaActual.respuesta;
+  respuestaCorrecta = (letra === correcta);
 
-// Reiniciar al hacer click en el logo
-document.getElementById("logo").addEventListener("click", reiniciarJuego);
+  document.querySelectorAll("#opciones .opcion").forEach((e,i) => {
+    const l = ['a','b','c'][i];
+    if(l === correcta) e.classList.add("correcta");
+    else if(l === letra) e.classList.add("incorrecta");
+  });
+
+  if(respuestaCorrecta){
+    setTimeout(mostrarBonus, 800);
+  } else {
+    mostrarMensaje("Incorrecto → 0 puntos", "#f44336");
+    setTimeout(siguienteTurno, 2500);
+  }
+  actualizarTabla();
+}
+
+function mostrarBonus(){
+  const div = document.getElementById("bonusPreguntas");
+  div.innerHTML = `
+    <div class="bonus-opcion" onclick="elegirBonus('tema','a')"><strong>Canción:</strong> ${cartaActual.tema_a}</div>
+    <div class="bonus-opcion" onclick="elegirBonus('tema','b')"><strong>Canción:</strong> ${cartaActual.tema_b}</div>
+    <div class="bonus-opcion" onclick="elegirBonus('tema','c')"><strong>Canción:</strong> ${cartaActual.tema_c}</div>
+
+    <div class="bonus-opcion" onclick="elegirBonus('banda','a')"><strong>Artista:</strong> ${cartaActual.banda_a}</div>
+    <div class="bonus-opcion" onclick="elegirBonus('banda','b')"><strong>Artista:</strong> ${cartaActual.banda_b}</div>
+    <div class="bonus-opcion" onclick="elegirBonus('banda','c')"><strong>Artista:</strong> ${cartaActual.banda_c}</div>
+
+    <div class="bonus-opcion" onclick="elegirBonus('anio','a')"><strong>Año:</strong> ${cartaActual.anio_a}</div>
+    <div class="bonus-opcion" onclick="elegirBonus('anio','b')"><strong>Año:</strong> ${cartaActual.anio_b}</div>
+    <div class="bonus-opcion" onclick="elegirBonus('anio','c')"><strong>Año:</strong> ${cartaActual.anio_c}</div>
+  `;
+  document.getElementById("bonus").classList.remove("hidden");
+}
+
+function elegirBonus(tipo, letra){
+  bonusSeleccionados[tipo] = letra;
+  document.querySelectorAll(`.bonus-opcion[onclick^="elegirBonus('${tipo}'"]`).forEach(e => {
+    e.classList.toggle("seleccionada", e === event.target);
+  });
+}
+
+function confirmarBonus(){
+  const correctas = {
+    tema: cartaActual.opcion_tema,
+    banda: cartaActual.opcion_banda,
+    anio: cartaActual.opcion_anio
+  };
+
+  let aciertos = 0, errores = 0;
+  if(bonusSeleccionados.tema) {
+    bonusSeleccionados.tema === correctas.tema ? aciertos++ : errores++;
+  }
+  if(bonusSeleccionados.banda) {
+    bonusSeleccionados.banda === correctas.banda ? aciertos++ : errores++;
+  }
+  if(bonusSeleccionados.anio) {
+    bonusSeleccionados.anio === correctas.anio ? aciertos++ : errores++;
+  }
+
+  if(errores > 0){
+    puntajes[turno] += 0;
+    mostrarMensaje(`Fallaste ${errores} bonus → 0 puntos total`, "#ff5252");
+  } else {
+    const puntosBonus = aciertos;
+    puntajes[turno] += 5 + puntosBonus;
+    mostrarMensaje(`¡Perfecto! +${puntosBonus} → ${5+puntosBonus} puntos`, "#1ed760");
+  }
+  actualizarTabla();
+  setTimeout(siguienteTurno, 2800);
+}
+
+function pasarSinBonus(){
+  puntajes[turno] += 5;
+  mostrarMensaje("5 puntos seguros", "var(--verde)");
+  actualizarTabla();
+  setTimeout(siguienteTurno, 2200);
+}
+
+function mostrarMensaje(texto, color){
+  const div = document.getElementById("resultado");
+  div.textContent = texto;
+  div.style.background = color + "22";
+  div.style.border = "2px solid " + color;
+  div.classList.remove("hidden");
+}
+
+function siguienteTurno(){
+  turno = (turno + 1) % jugadores.length;
+  setTimeout(siguienteCarta, 600);
+}
+
+function actualizarTabla(){
+  const tabla = jugadores.map((n,i) => `${n}: <strong>${puntajes[i]} pts</strong>`).join("<br>");
+  document.getElementById("tabla").innerHTML = tabla;
+}
+
+function terminarJuego(){
+  document.getElementById("juego").classList.add("hidden");
+  document.getElementById("final").classList.remove("hidden");
+
+  const ordenados = jugadores.map((n,i)=>({nombre:n, puntos:puntajes[i]})).sort((a,b)=>b.puntos-a.puntos);
+
+  document.getElementById("ganador").innerHTML = `
+    <div style="font-size:42px;margin:20px 0">${ordenados[0].nombre}</div>
+    <div style="font-size:24px">CAMPEÓN con ${ordenados[0].puntos} puntos 🏆</div>
+  `;
+
+  let podio = "";
+  ordenados.forEach((j,i) => {
+    const medalla = i===0 ? "1st" : i===1 ? "2nd" : i===2 ? "3rd" : `#${i+1}`;
+    podio += `<div><strong>${medalla}</strong> ${j.nombre} → ${j.puntos} pts</div>`;
+  });
+  document.getElementById("podio").innerHTML = podio;
+}
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
 </body>
 </html>
