@@ -181,5 +181,29 @@ document.getElementById("btnReiniciar").addEventListener("click", reiniciarJuego
 document.getElementById("logo").addEventListener("click", reiniciarJuego);
 </script>
 
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js").then(reg => {
+
+    // Detecta cuando hay un SW nuevo
+    reg.addEventListener("updatefound", () => {
+      const newSW = reg.installing;
+
+      newSW.addEventListener("statechange", () => {
+        if (newSW.state === "installed" && navigator.serviceWorker.controller) {
+
+          // Forzar activación inmediata
+          newSW.postMessage("skipWaiting");
+
+          // Recargar la app con la nueva versión
+          window.location.reload();
+        }
+      });
+    });
+  });
+}
+</script>
+
+
 </body>
 </html>
