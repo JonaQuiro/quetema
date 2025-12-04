@@ -1,5 +1,6 @@
-const CACHE = "quetema-cache-v3";
-const PRECACHE = [
+const CACHE = "quetema-cache-v4";
+
+const FILES = [
   "./",
   "./index.html",
   "./preguntas.js",
@@ -7,74 +8,43 @@ const PRECACHE = [
   "./logo.png"
 ];
 
-// INSTALACIÓN
-self.addEventListener("install", event => {
-  console.log("[SW] Instalando…");
-
-  event.waitUntil(
-    caches.open(CACHE).then(cache => {
-      return cache.addAll(PRECACHE);
-    })
+// INSTALACIÓN: Cachea los archivos base
+self.addEventListener("install", evt => {
+  evt.waitUntil(
+    caches.open(CACHE).then(cache => cache.addAll(FILES))
   );
-
   self.skipWaiting();
 });
 
-// ACTIVACIÓN
-self.addEventListener("activate", event => {
-  console.log("[SW] Activado");
-
-  event.waitUntil(
+// ACTIVACIÓN: Limpia cachés viejos
+self.addEventListener("activate", evt => {
+  evt.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys.filter(k => k !== CACHE).map(k => caches.delete(k))
+        keys
+          .filter(k => k !== CACHE)
+          .map(k => caches.delete(k))
       )
     )
   );
-
-  clients.claim();
+  self.clients.claim();
 });
 
-// FETCH
-self.addEventListener("fetch", event => {
-  const req = event.request;
-
-  // 1) No cachear llamadas a chrome-extension o analytics
-  if (req.url.startsWith("chrome-extension") || req.url.includes("analytics")) {
-    return event.respondWith(fetch(req));
-  }
-
-  // 2) HTML → Network First
-  if (req.mode === "navigate") {
-    event.respondWith(
-      fetch(req)
-        .then(res => {
-          caches.open(CACHE).then(cache => cache.put(req, res.clone()));
-          return res;
+// FETCH: Stale-While-Revalidate (rápido + mantiene actualizado)
+self.addEventListener("fetch", evt => {
+  evt.respondWith(
+    caches.match(evt.request).then(cacheRes => {
+      const fetchPromise = fetch(evt.request)
+        .then(networkRes => {
+          // actualizar caché con la respuesta nueva
+          return caches.open(CACHE).then(cache => {
+            cache.put(evt.request, networkRes.clone());
+            return networkRes;
+          });
         })
-        .catch(() => caches.match("./index.html"))
-    );
-    return;
-  }
+        .catch(() => cacheRes); // offline fallback
 
-  // 3) Otros archivos → Cache First
-  event.respondWith(
-    caches.match(req).then(cached => {
-      return (
-        cached ||
-        fetch(req).then(res => {
-          // NO guardar imágenes dinámicas (para evitar problemas)
-          if (!req.url.endsWith(".jpg") && !req.url.endsWith(".png")) {
-            caches.open(CACHE).then(cache => cache.put(req, res.clone()));
-          }
-          return res;
-        })
-      );
+      return cacheRes || fetchPromise;
     })
   );
-});
-
-// MENSAJE skipWaiting
-self.addEventListener("message", event => {
-  if (event.data === "skipWaiting") self.skipWaiting();
 });
