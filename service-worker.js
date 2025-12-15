@@ -1,25 +1,24 @@
-// Cambiá la versión cuando quieras forzar actualización
-const CACHE = "impostores-v2";
+const CACHE = "quetema-cache-v5";
 
 const FILES = [
   "./",
   "./index.html",
-  "./content/personajes.js",
+  "./preguntas.js",
   "./manifest.json",
   "./logo.png"
 ];
 
-// INSTALACIÓN
-self.addEventListener("install", event => {
-  self.skipWaiting();
-  event.waitUntil(
+// INSTALACIÓN: Cachea los archivos base
+self.addEventListener("install", evt => {
+  evt.waitUntil(
     caches.open(CACHE).then(cache => cache.addAll(FILES))
   );
+  self.skipWaiting();
 });
 
-// ACTIVACIÓN
-self.addEventListener("activate", event => {
-  event.waitUntil(
+// ACTIVACIÓN: Limpia cachés viejos
+self.addEventListener("activate", evt => {
+  evt.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
         keys
@@ -28,34 +27,24 @@ self.addEventListener("activate", event => {
       )
     )
   );
-  clients.claim();
+  self.clients.claim();
 });
 
-// ESTRATEGIA:
-// - HTML → NETWORK FIRST (para que actualice diseño)
-// - JS, JSON, IMÁGENES → CACHE FIRST + actualización silenciosa
-self.addEventListener("fetch", event => {
-  if (event.request.mode === "navigate") {
-    // HTML siempre se trae fresco
-    event.respondWith(
-      fetch(event.request).catch(() => caches.match("./index.html"))
-    );
-    return;
-  }
-
-  // cache first para assets
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      const fetchPromise = fetch(event.request)
-        .then(networkResp => {
-          caches.open(CACHE).then(cache => {
-            cache.put(event.request, networkResp.clone());
+// FETCH: Stale-While-Revalidate (rápido + mantiene actualizado)
+self.addEventListener("fetch", evt => {
+  evt.respondWith(
+    caches.match(evt.request).then(cacheRes => {
+      const fetchPromise = fetch(evt.request)
+        .then(networkRes => {
+          // actualizar caché con la respuesta nueva
+          return caches.open(CACHE).then(cache => {
+            cache.put(evt.request, networkRes.clone());
+            return networkRes;
           });
-          return networkResp;
         })
-        .catch(() => cached);
+        .catch(() => cacheRes); // offline fallback
 
-      return cached || fetchPromise;
+      return cacheRes || fetchPromise;
     })
   );
 });

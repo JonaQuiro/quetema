@@ -1,276 +1,210 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>IMPOSTORES</title>
-   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0d0d0d" />
-  <style>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#333">
+<meta charset="UTF-8">
+<title>QuéTema</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Favicon -->
+<link rel="icon" type="image/png" href="logo.png">
+
+<style>
+    /* Fondo oscuro y texto claro */
     body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: #0d0d0d;
-      color: white;
-      text-align: center;
-      margin: 0;
-      padding: 20px;
+        font-family: Arial, sans-serif;
+        background: #333;
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
     }
 
-    h1 {
-      color: #ff3366;
-      margin-bottom: 10px;
+    /* Logo grande y centrado */
+    #logo {
+        width: 180px;
+        max-width: 90%;
+        height: auto;
+        margin: 20px auto;
+        display: block;
+        cursor: pointer; /* indica que se puede clickear */
+        transition: transform 0.2s;
     }
 
-    #game {
-      display: none;
-      margin-top: 30px;
+    #logo:hover {
+        transform: scale(1.05);
     }
 
-    .player-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      border: 2px solid #444;
-      border-radius: 15px;
-      background-color: #1a1a1a;
-      width: 280px;
-      height: 180px;
-      margin: 0 auto;
-      box-shadow: 0 0 20px #ff3366aa;
-      padding: 20px;
+    .container {
+        perspective: 1000px;
+        margin: 20px auto;
+        width: 300px;
+        max-width: 90%;
     }
 
-    .player-card h2 {
-      margin: 5px 0;
+    .carta {
+        width: 100%;
+        height: 180px;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+        display: none;
+    }
+
+    .flip {
+        transform: rotateY(180deg);
+    }
+
+    .lado {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        padding: 20px;
+        box-sizing: border-box;
+        border-radius: 15px;
+        backface-visibility: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.2rem;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+
+    .front {
+        background: white;
+        color: black;
+    }
+
+    .back {
+        background: black;
+        color: white;
+        transform: rotateY(180deg);
     }
 
     button {
-      background-color: #ff3366;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-      margin: 10px;
-      transition: 0.2s;
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        margin-top: 15px;
+        cursor: pointer;
+        border-radius: 8px;
+        border: none;
+        background: white;
+        color: black;
+        transition: background 0.2s;
     }
 
-    button:hover {
-      background-color: #ff6699;
+    button:active {
+        background: #ccc;
     }
-
-    input {
-      padding: 8px;
-      font-size: 16px;
-      border-radius: 5px;
-      border: 1px solid #555;
-      margin: 5px;
-    }
-
-    #finalButtons {
-      display: none;
-      margin-top: 30px;
-    }
-  </style>
+</style>
 </head>
 <body>
 
-  <h1>🎭 El Juego del IMPOSTOR</h1>
+<!-- Logo (clickeable para reiniciar) -->
+<img src="logo.png" alt="QuéTema Logo" id="logo">
 
-  <!-- ETAPA 1: Cantidad de jugadores -->
-  <div id="step1">
-    <p>¿Cuántos jugadores van a participar?</p>
-    <input id="cantidadInput" type="number" min="3" max="20" placeholder="Ej: 8">
-    <br><br>
-    <button onclick="setCantidad()">Continuar</button>
-  </div>
+<!-- Botón Reiniciar -->
+<button id="btnReiniciar" style="display:none;">Reiniciar</button>
 
-  <!-- ETAPA 2: Ingreso de nombres -->
-  <div id="step2" style="display:none;">
-    <p id="nombreLabel">Jugador 1:</p>
-    <input id="nombreInput" type="text" placeholder="Escribí el nombre">
-    <br><br>
-    <button onclick="agregarNombre()">Agregar / Siguiente</button>
-  </div>
+<!-- Botón Comenzar -->
+<button id="btnComenzar">Comenzar</button>
 
-  <!-- ETAPA 3: Juego -->
-  <div id="game">
-    <div id="playerContainer"></div>
-    <button id="revealButton" onclick="revealCard()">REVELAR 🔍</button>
-    <button id="nextButton" onclick="nextPlayer()" style="display:none;">Siguiente jugador ➡️</button>
-  </div>
-
-  <!-- ETAPA FINAL -->
-  <div id="endMessage" style="display:none;">
-    <h2>Todos vieron sus cartas 👀</h2>
-    <p>¡Empieza el juego! Descubran al impostor 😈</p>
-
-    <div id="finalButtons">
-      <button onclick="revelarFinal()">👀 Revelar personaje e impostor</button>
-      <button onclick="reSimular()">🔁 Volver a simular</button>
-      <button onclick="reiniciarTodo()">🔄 Volver al inicio</button>
+<!-- Carta -->
+<div class="container">
+    <div class="carta" id="carta">
+        <div class="lado front" id="ladoFront">Pregunta</div>
+        <div class="lado back" id="ladoBack">Pregunta</div>
     </div>
+</div>
 
-    <div id="revelacionFinal" style="margin-top:20px; display:none;"></div>
-  </div>
+<!-- Botón Siguiente -->
+<button id="btnSiguiente" style="display:none;">Siguiente</button>
 
-  <!-- 📌 Incluir el JSON como JS -->
-  <script src="content/personajes.js"></script>
+<!-- Archivo externo con preguntas -->
+<script src="preguntas.js"></script>
 
-  <script>
-    let cantidadJugadores = 0;
-    let jugadores = [];
-    let asignaciones = [];
-    let turno = 0;
-    let personajeBase = null;
+<script>
+let preguntas = window.PREGUNTAS || [];
+let restantes = [];
 
-    function setCantidad() {
-      const n = parseInt(document.getElementById("cantidadInput").value);
-      if (!n || n < 3) return alert("Debe haber al menos 3 jugadores.");
-      cantidadJugadores = n;
-      jugadores = [];
-      document.getElementById("step1").style.display = "none";
-      document.getElementById("step2").style.display = "block";
-      document.getElementById("nombreLabel").textContent = "Jugador 1:";
-      document.getElementById("nombreInput").focus();
+// Mostrar nueva carta
+function mostrarNuevaCarta() {
+    if (restantes.length === 0) {
+        document.getElementById("ladoFront").innerText = "¡No hay más preguntas!";
+        document.getElementById("ladoBack").innerText  = "Fin del mazo";
+        return;
     }
 
-    function agregarNombre() {
-      const input = document.getElementById("nombreInput");
-      const nombre = input.value.trim();
-      if (!nombre) return alert("Escribí un nombre.");
-      jugadores.push(nombre);
-      input.value = "";
-      input.focus();
+    const idx = Math.floor(Math.random() * restantes.length);
+    const pregunta = restantes.splice(idx, 1)[0];
 
-      if (jugadores.length < cantidadJugadores) {
-        document.getElementById("nombreLabel").textContent = `Jugador ${jugadores.length + 1}:`;
-      } else {
-        document.getElementById("step2").style.display = "none";
-        iniciarJuego();
-      }
+    document.getElementById("ladoBack").innerText = pregunta.pregunta;
+
+    const carta = document.getElementById("carta");
+    carta.classList.remove("flip");
+    setTimeout(() => carta.classList.add("flip"), 50);
+}
+
+// Iniciar juego
+document.getElementById("btnComenzar").addEventListener("click", function() {
+    if (preguntas.length === 0) {
+        alert("No hay preguntas cargadas en preguntas.js");
+        return;
     }
 
-    function iniciarJuego() {
-      if (!personajes || personajes.length === 0) return alert("No hay personajes cargados.");
-      document.getElementById("game").style.display = "block";
-      asignaciones = [];
-      turno = 0;
+    restantes = [...preguntas];
 
-      personajeBase = personajes[Math.floor(Math.random() * personajes.length)];
+    document.getElementById("carta").style.display = "block";
+    document.getElementById("btnSiguiente").style.display = "inline-block";
+    document.getElementById("btnReiniciar").style.display = "inline-block";
+    this.style.display = "none";
 
-      let cantidadImpostores = 1;
-      if (jugadores.length > 5) {
-        cantidadImpostores = Math.random() < 0.4 ? 2 : 1;
-      }
+    mostrarNuevaCarta();
+});
 
-      let indicesImpostores = [];
-      while (indicesImpostores.length < cantidadImpostores) {
-        let idx = Math.floor(Math.random() * jugadores.length);
-        if (!indicesImpostores.includes(idx)) indicesImpostores.push(idx);
-      }
+// Siguiente carta
+document.getElementById("btnSiguiente").addEventListener("click", mostrarNuevaCarta);
 
-      for (let i = 0; i < jugadores.length; i++) {
-        asignaciones.push({
-          jugador: jugadores[i],
-          personaje: indicesImpostores.includes(i) ? null : personajeBase,
-          esImpostor: indicesImpostores.includes(i)
-        });
-      }
+// Función de reinicio
+function reiniciarJuego() {
+    restantes = [];
+    document.getElementById("carta").style.display = "none";
+    document.getElementById("btnSiguiente").style.display = "none";
+    document.getElementById("btnComenzar").style.display = "inline-block";
+    document.getElementById("btnReiniciar").style.display = "none";
+}
 
-      asignaciones = asignaciones.sort(() => Math.random() - 0.5);
+// Botón Reiniciar
+document.getElementById("btnReiniciar").addEventListener("click", reiniciarJuego);
 
-      mostrarJugador();
-    }
+// Reiniciar al hacer click en el logo
+document.getElementById("logo").addEventListener("click", reiniciarJuego);
+</script>
 
-    function mostrarJugador() {
-      const data = asignaciones[turno];
-      const contenedor = document.getElementById("playerContainer");
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js").then(reg => {
 
-      contenedor.innerHTML = `
-        <div class="player-card">
-          <h2>${data.jugador}</h2>
+    // Detecta cuando hay un SW nuevo
+    reg.addEventListener("updatefound", () => {
+      const newSW = reg.installing;
 
-          <p id="nombrePersonaje" style="display:none;">
-            ${data.personaje ? data.personaje.nombre : ""}
-          </p>
+      newSW.addEventListener("statechange", () => {
+        if (newSW.state === "installed" && navigator.serviceWorker.controller) {
 
-          <small id="mensajeImpostor" style="display:none; color:#ff3366;">
-            ${data.esImpostor ? "🤫 Sos el IMPOSTOR" : ""}
-          </small>
+          // Forzar activación inmediata
+          newSW.postMessage("skipWaiting");
 
-          <small id="pistaImpostor" style="display:none; color:#999;">
-            ${data.esImpostor ? "(Pista: " + personajeBase.pista + ")" : ""}
-          </small>
-        </div>
-      `;
+          // Recargar la app con la nueva versión
+          window.location.reload();
+        }
+      });
+    });
+  });
+}
+</script>
 
-      document.getElementById("revealButton").style.display = "inline-block";
-      document.getElementById("nextButton").style.display = "none";
-    }
 
-    function revealCard() {
-      const data = asignaciones[turno];
-
-      if (!data.esImpostor) {
-        document.getElementById("nombrePersonaje").style.display = "block";
-      }
-
-      document.getElementById("mensajeImpostor").style.display = "block";
-
-      if (data.esImpostor) {
-        document.getElementById("pistaImpostor").style.display = "block";
-      }
-
-      document.getElementById("revealButton").style.display = "none";
-      document.getElementById("nextButton").style.display = "inline-block";
-    }
-
-    function nextPlayer() {
-      turno++;
-      if (turno < jugadores.length) {
-        mostrarJugador();
-      } else {
-        document.getElementById("game").style.display = "none";
-        document.getElementById("endMessage").style.display = "block";
-        document.getElementById("finalButtons").style.display = "block";
-      }
-    }
-
-    function revelarFinal() {
-      const div = document.getElementById("revelacionFinal");
-      div.style.display = "block";
-
-      const impostores = asignaciones.filter(a => a.esImpostor);
-
-      let mensajeImpostor = impostores.length > 1
-        ? "Hay más de uno"
-        : impostores[0].jugador;
-
-      div.innerHTML = `
-        <h3>🎭 Personaje: ${personajeBase.nombre} (${personajeBase.categoria})</h3>
-        <p>😈 Impostor(es): <b>${mensajeImpostor}</b></p>
-      `;
-    }
-
-    function reSimular() {
-      document.getElementById("revelacionFinal").style.display = "none";
-      document.getElementById("revelacionFinal").innerHTML = "";
-      document.getElementById("endMessage").style.display = "none";
-      iniciarJuego();
-    }
-
-    function reiniciarTodo() {
-      document.getElementById("endMessage").style.display = "none";
-      document.getElementById("step1").style.display = "block";
-      document.getElementById("cantidadInput").value = "";
-      document.getElementById("revelacionFinal").style.display = "none";
-      document.getElementById("revelacionFinal").innerHTML = "";
-      document.getElementById("finalButtons").style.display = "none";
-      jugadores = [];
-    }
-  </script>
 </body>
 </html>
