@@ -11,7 +11,6 @@
 <link rel="icon" type="image/png" href="logo.png">
 
 <style>
-    /* Fondo oscuro y texto claro */
     body {
         font-family: Arial, sans-serif;
         background: #333;
@@ -21,14 +20,13 @@
         margin: 0;
     }
 
-    /* Logo grande y centrado */
     #logo {
         width: 180px;
         max-width: 90%;
         height: auto;
         margin: 20px auto;
         display: block;
-        cursor: pointer; /* indica que se puede clickear */
+        cursor: pointer;
         transition: transform 0.2s;
     }
 
@@ -99,13 +97,11 @@
     }
 </style>
 </head>
+
 <body>
 
-<!-- Logo (clickeable para reiniciar) -->
+<!-- Logo (reinicia el juego) -->
 <img src="logo.png" alt="QuéTema Logo" id="logo">
-
-<!-- Botón Reiniciar -->
-<button id="btnReiniciar" style="display:none;">Reiniciar</button>
 
 <!-- Botón Comenzar -->
 <button id="btnComenzar">Comenzar</button>
@@ -157,7 +153,6 @@ document.getElementById("btnComenzar").addEventListener("click", function() {
 
     document.getElementById("carta").style.display = "block";
     document.getElementById("btnSiguiente").style.display = "inline-block";
-    document.getElementById("btnReiniciar").style.display = "inline-block";
     this.style.display = "none";
 
     mostrarNuevaCarta();
@@ -166,19 +161,14 @@ document.getElementById("btnComenzar").addEventListener("click", function() {
 // Siguiente carta
 document.getElementById("btnSiguiente").addEventListener("click", mostrarNuevaCarta);
 
-// Función de reinicio
+// Reinicio del juego (solo con el logo)
 function reiniciarJuego() {
     restantes = [];
     document.getElementById("carta").style.display = "none";
     document.getElementById("btnSiguiente").style.display = "none";
     document.getElementById("btnComenzar").style.display = "inline-block";
-    document.getElementById("btnReiniciar").style.display = "none";
 }
 
-// Botón Reiniciar
-document.getElementById("btnReiniciar").addEventListener("click", reiniciarJuego);
-
-// Reiniciar al hacer click en el logo
 document.getElementById("logo").addEventListener("click", reiniciarJuego);
 </script>
 
@@ -186,17 +176,12 @@ document.getElementById("logo").addEventListener("click", reiniciarJuego);
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./service-worker.js").then(reg => {
 
-    // Detecta cuando hay un SW nuevo
     reg.addEventListener("updatefound", () => {
       const newSW = reg.installing;
 
       newSW.addEventListener("statechange", () => {
         if (newSW.state === "installed" && navigator.serviceWorker.controller) {
-
-          // Forzar activación inmediata
           newSW.postMessage("skipWaiting");
-
-          // Recargar la app con la nueva versión
           window.location.reload();
         }
       });
@@ -204,7 +189,6 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
-
 
 </body>
 </html>

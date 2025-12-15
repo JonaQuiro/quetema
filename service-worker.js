@@ -1,4 +1,4 @@
-const CACHE = "quetema-cache-v5";
+const CACHE = "quetema-cache-v6";
 
 const FILES = [
   "./",
